@@ -8,6 +8,8 @@ using UnityEngine.Networking;
 
 namespace GlobalstatsIO {
 	public class GlobalstatsIOClient {
+		private const string STATISTIC_ID_PREF_KEY = "globalstats.io.statistic-id";
+
 		#region Singleton
 		private static GlobalstatsIOClient instance;
 		public static GlobalstatsIOClient Instance { get; private set; }
@@ -24,7 +26,11 @@ namespace GlobalstatsIO {
 		private AccessToken _apiAccessToken;
 		private List<StatisticValues> _statisticValues = new List<StatisticValues>();
 
-		public string StatisticId { get; set; } = "";
+		public string StatisticId {
+			get => PlayerPrefs.GetString(STATISTIC_ID_PREF_KEY);
+			set => PlayerPrefs.SetString(STATISTIC_ID_PREF_KEY, value);
+		}
+
 		public string UserName { get; set; } = "";
 		public LinkData LinkData { get; set; } = null;
 
