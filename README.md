@@ -39,7 +39,7 @@ values.Add ("shots", Score.shots_fired.ToString());
 values.Add ("time", (Score.play_time * 1000).ToString());
 
 // use StartCoroutine to submit the score asynchronously and use the optional callback parameter
-StartCoroutine(gs.Share ("", user_name, values, CallbackMethod)));
+StartCoroutine(gs.Share (values, name: user_name, callback: CallbackMethod)));
 
 void CallbackMethod(bool success){
     if (success){
