@@ -66,7 +66,7 @@ You can also simply reset it by assigning an empty string to the value.
 Most of the time you want to allow the user to link his scores with his globalstats.io account.
 In this case you can do this with following lines
 ```
-GlobalstatsIO gs = new GlobalstatsIO();
+var gs = new GlobalstatsIOClient();
 StartCoroutine(gs.LinkStatistic(CallbackMethod));
 
 void CallbackMethod(bool success){
@@ -85,7 +85,7 @@ Of course, this will use the data from the prior share() call for linking.
 You can also fetch the current top positions of your leaderboard with a GTD of your choice. You can retrieve that leaderboard with following lines:
 
 ```
-GlobalstatsIO gs = new GlobalstatsIO();
+var gs = new GlobalstatsIOClient();
 string gtd = "score"
 int limit = 2;
 
