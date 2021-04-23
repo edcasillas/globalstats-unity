@@ -5,8 +5,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace GlobalstatsIO
-{
+namespace GlobalstatsIO {
 	public class GlobalstatsIOClient {
 		private readonly string _apiId;
 		private readonly string _apiSecret;
