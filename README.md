@@ -14,7 +14,7 @@ To submit a player score instatiante a object, add the values and call Share()
 private const string GlobalstatsIOApiId = "YourApiIdHere";
 private const string GlobalstatsIOApiSecret = "YourApiSecretHere";
 
-GlobalstatsIO gs = new GlobalstatsIO(GlobalstatsIOApiId, GlobalstatsIOApiSecret);
+var gs = new GlobalstatsIOClient(GlobalstatsIOApiId, GlobalstatsIOApiSecret);
 
 string user_name = "Nickname";
 
@@ -66,7 +66,7 @@ void CallbackMethod(bool success){
 ```
 Of course, this will use the data from the prior share() call for linking.
 
-### Retrieving Leaderboard 
+### Retrieving Leaderboard
 You can also fetch the current top positions of your leaderboard with a GTD of your choice. You can retrieve that leaderboard with following lines:
 
 ```
@@ -86,7 +86,7 @@ void CallbackMethod(Leaderboard leaderboard){
 }
 ```
 
-In this case we want the leaderboard of the GTD score. The limit is the number players you want to fetch, which has to be between 1 and 100. 
+In this case we want the leaderboard of the GTD score. The limit is the number players you want to fetch, which has to be between 1 and 100.
 
 ## Feedback
 If you encounter any issues you can create an issue here on github.
