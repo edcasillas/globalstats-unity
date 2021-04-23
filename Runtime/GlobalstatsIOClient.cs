@@ -46,7 +46,9 @@ namespace GlobalstatsIO {
 			public string expires_in = null;
 			public int created_at = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-			//Check if still valid, allow a 2 minute grace period
+			/// <summary>
+			/// Check if still valid, allow a 2 minute grace period
+			/// </summary>
 			public bool IsValid() =>
 				(this.created_at + int.Parse(this.expires_in) - 120) > (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 		}
@@ -61,7 +63,11 @@ namespace GlobalstatsIO {
 		}
 		#endregion
 
-		private void newGetAccessToken(Action onSuccess, Action onError) {
+		private void ensureAccessToken(Action onSuccess = null, Action onError = null) {
+			if (_apiAccessToken != null && _apiAccessToken.IsValid()) {
+				onSuccess?.Invoke();
+				return;
+			}
 			restClient.Post<AccessToken>("oauth/access_token",
 				new Dictionary<string, object>() {
 					{"grant_type", "client_credentials"},
@@ -72,6 +78,9 @@ namespace GlobalstatsIO {
 				response => {
 					if (response.IsSuccess) {
 						_apiAccessToken = response.Data;
+						onSuccess?.Invoke();
+					} else {
+						onError?.Invoke();
 					}
 				});
 		}
@@ -108,24 +117,17 @@ namespace GlobalstatsIO {
 		/// <param name="id"></param>
 		/// <param name="name"></param>
 		/// <param name="callback"></param>
-		public void Share(Dictionary<string, string> values, string id = "", string name = "",
-			Action<bool> callback = null)
-			=> Coroutiner.StartCoroutine(share(values, id, name, callback));
+		public void Share(Dictionary<string, string> values, string id = "", string name = "", Action<bool> callback = null) => ensureAccessToken(() => Coroutiner.StartCoroutine(share(values, id, name, callback)));
 
 		private IEnumerator share(Dictionary<string, string> values, string id = "", string name = "",
 			Action<bool> callback = null) {
-			var update = false;
-
-			if (_apiAccessToken == null || !_apiAccessToken.IsValid()) {
-				yield return getAccessToken();
-			}
-
 			// If no id is supplied but we have one stored, reuse it.
 			if (string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(StatisticId)) {
 				id = StatisticId;
 			}
 
 			var url = "https://api.globalstats.io/v1/statistics";
+			var update = false;
 			if (!string.IsNullOrEmpty(id)) {
 				url += $"/{id}";
 				update = true;
