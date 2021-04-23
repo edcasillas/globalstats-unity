@@ -8,8 +8,23 @@ If you are looking for a .Net implementation that you can also use in Unity you 
 ## Usage
 Simply add the .cs file to your project.
 
+OR
+
+Include this repository as a package:
+- In Unity 2021+
+    1. Open the Package Manager (Window -> Package Manager).
+    2. Click the plus sign button ("+") and select "Add package from git URL..."
+    3. Enter the URL of this repository and click "Add".
+- In previous versions, add the following line to your Packages/manifest.json file under dependencies:
+
+    ```
+    "io.gitstats.unity": "URL of this repo"
+    ```
+
+To get the URL of this repository to use in any of the options above, click on the green "Code" button at the top of this page, then copy the HTTPS URL.
+
 ### Submitting Scores
-To submit a player score instatiante a object, add the values and call Share()
+To submit a player score instantiate a object, add the values and call Share()
 ```
 private const string GlobalstatsIOApiId = "YourApiIdHere";
 private const string GlobalstatsIOApiSecret = "YourApiSecretHere";
