@@ -77,18 +77,18 @@ namespace GlobalstatsIO
 
 		public IEnumerator Share(Dictionary<string, string> values, string id = "", string name = "",
 			Action<bool> callback = null) {
-			bool update = false;
+			var update = false;
 
-			if (this._apiAccessToken == null || !this._apiAccessToken.IsValid()) {
-				yield return this.GetAccessToken();
+			if (_apiAccessToken == null || !_apiAccessToken.IsValid()) {
+				yield return GetAccessToken();
 			}
 
 			// If no id is supplied but we have one stored, reuse it.
-			if (id == "" && this.StatisticId != "") {
-				id = this.StatisticId;
+			if (id == "" && StatisticId != "") {
+				id = StatisticId;
 			}
 
-			string url = "https://api.globalstats.io/v1/statistics";
+			var url = "https://api.globalstats.io/v1/statistics";
 			if (id != "") {
 				url = "https://api.globalstats.io/v1/statistics/" + id;
 				update = true;
@@ -106,8 +106,8 @@ namespace GlobalstatsIO
 				jsonPayload = "{\"values\":{";
 			}
 
-			bool semicolon = false;
-			foreach (KeyValuePair<string, string> value in values) {
+			var semicolon = false;
+			foreach (var value in values) {
 				if (semicolon) {
 					jsonPayload += ",";
 				}
@@ -118,15 +118,11 @@ namespace GlobalstatsIO
 
 			jsonPayload += "}}";
 
-			byte[] pData = Encoding.UTF8.GetBytes(jsonPayload);
+			var pData = Encoding.UTF8.GetBytes(jsonPayload);
 			StatisticResponse statistic = null;
 
-			using (UnityWebRequest www = new UnityWebRequest(url)) {
-				if (update == false) {
-					www.method = "POST";
-				} else {
-					www.method = "PUT";
-				}
+			using (var www = new UnityWebRequest(url)) {
+				www.method = update == false ? "POST" : "PUT";
 
 				www.uploadHandler = new UploadHandlerRaw(pData);
 				www.downloadHandler = new DownloadHandlerBuffer();
@@ -134,7 +130,7 @@ namespace GlobalstatsIO
 				www.SetRequestHeader("Content-Type", "application/json");
 				yield return www.SendWebRequest();
 
-				string responseBody = www.downloadHandler.text;
+				var responseBody = www.downloadHandler.text;
 
 				if (www.isNetworkError || www.isHttpError) {
 					Debug.LogWarning("Error submitting statistic: " + www.error);
@@ -145,28 +141,28 @@ namespace GlobalstatsIO
 				}
 			}
 
-			;
-
 			// ID is available only on create, not on update, so do not overwrite it
-			if (statistic._id != null && statistic._id != "") {
-				this.StatisticId = statistic._id;
+			if (statistic?._id != null && statistic._id != "") {
+				StatisticId = statistic._id;
 			}
 
-			this.UserName = statistic.name;
+			UserName = statistic?.name;
 
-			//Store the returned data statically
-			foreach (StatisticValues value in statistic.values) {
-				bool updatedExisting = false;
-				for (int i = 0; i < this._statisticValues.Count; i++) {
-					if (this._statisticValues[i].key == value.key) {
-						this._statisticValues[i] = value;
-						updatedExisting = true;
-						break;
+			if (statistic != null) {
+				//Store the returned data statically
+				foreach (var value in statistic.values) {
+					bool updatedExisting = false;
+					for (int i = 0; i < this._statisticValues.Count; i++) {
+						if (this._statisticValues[i].key == value.key) {
+							this._statisticValues[i] = value;
+							updatedExisting = true;
+							break;
+						}
 					}
-				}
 
-				if (!updatedExisting) {
-					this._statisticValues.Add(value);
+					if (!updatedExisting) {
+						this._statisticValues.Add(value);
+					}
 				}
 			}
 
