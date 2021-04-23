@@ -1,4 +1,5 @@
 ﻿using CommonUtils;
+using CommonUtils.RestSdk;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using UnityEngine.Networking;
 namespace GlobalstatsIO {
 	public class GlobalstatsIOClient {
 		private const string STATISTIC_ID_PREF_KEY = "globalstats.io.statistic-id";
+		private const string BASE_URL = "https://api.globalstats.io";
 
 		#region Singleton
 		private static GlobalstatsIOClient instance;
@@ -18,9 +20,11 @@ namespace GlobalstatsIO {
 			if(!ApiConfig.Init()) return;
 			_apiId = ApiConfig.Instance.GlobalstatsId;
 			_apiSecret = ApiConfig.Instance.GlobalstatsSecret;
+			restClient = new RestClient(BASE_URL);
 		}
 		#endregion
 
+		private readonly IRestClient restClient;
 		private readonly string _apiId;
 		private readonly string _apiSecret;
 		private AccessToken _apiAccessToken;
@@ -56,6 +60,21 @@ namespace GlobalstatsIO {
 			public List<StatisticValues> values = null;
 		}
 		#endregion
+
+		private void newGetAccessToken(Action onSuccess, Action onError) {
+			restClient.Post<AccessToken>("oauth/access_token",
+				new Dictionary<string, object>() {
+					{"grant_type", "client_credentials"},
+					{"scope", "endpoint_client"},
+					{"client_id", ApiConfig.Instance.GlobalstatsId},
+					{"client_secret", ApiConfig.Instance.GlobalstatsSecret}
+				},
+				response => {
+					if (response.IsSuccess) {
+						_apiAccessToken = response.Data;
+					}
+				});
+		}
 
 		private IEnumerator getAccessToken() {
 			string url = "https://api.globalstats.io/oauth/access_token";
