@@ -1,0 +1,20 @@
+{
+    "name": "io.globalstats.unity.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b18307dcc7419684dac180aab63199af",
+        "GUID:453644240d94c4e929b3a593a6ae93d7",
+        "GUID:6c6fab3a886a248888c7fbb984d1dc2b"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

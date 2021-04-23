@@ -7,6 +7,12 @@ using UnityEngine.Networking;
 
 namespace GlobalstatsIO {
 	public class GlobalstatsIOClient {
+		/*#region Singleton
+		private static GlobalstatsIOClient instance;
+		public static GlobalstatsIOClient Instance { get; private set; }
+		private GlobalstatsIOClient() { }
+		#endregion*/
+
 		private readonly string _apiId;
 		private readonly string _apiSecret;
 		private AccessToken _apiAccessToken;
