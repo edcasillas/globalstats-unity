@@ -1,4 +1,5 @@
 ﻿using CommonUtils;
+using CommonUtils.RestSdk;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -101,19 +102,17 @@ namespace GlobalstatsIO {
 		/// <param name="id"></param>
 		/// <param name="name"></param>
 		/// <param name="callback"></param>
-		public void Share(Dictionary<string, string> values, string id = "", string name = "", Action<bool> callback = null) => ensureAccessToken(() => Coroutiner.StartCoroutine(share(values, id, name, callback)));
+		public void Share(Dictionary<string, string> values, string id = "", string name = "",
+			Action<bool> callback = null) => ensureAccessToken(() => share(values, id, name, callback));
 
-		private IEnumerator share(Dictionary<string, string> values, string id = "", string name = "",
-			Action<bool> callback = null) {
+		private void share(Dictionary<string, string> values, string id = "", string name = "", Action<bool> callback = null) {
 			// If no id is supplied but we have one stored, reuse it.
 			if (string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(StatisticId)) {
 				id = StatisticId;
 			}
 
-			var url = $"{BASE_URL}/v1/statistics";
 			var update = false;
 			if (!string.IsNullOrEmpty(id)) {
-				url += $"/{id}";
 				update = true;
 			} else {
 				if (string.IsNullOrWhiteSpace(name)) {
@@ -141,42 +140,31 @@ namespace GlobalstatsIO {
 
 			jsonPayload += "}}";
 
-			var pData = Encoding.UTF8.GetBytes(jsonPayload);
-			StatisticResponse statistic = null;
-
-			/*if (update) {
+			if (update) {
 				restClient.Put<StatisticResponse>("v1/statistics", id, jsonPayload,
 					response => {
-
+						handleShareResponse(response, callback);
 					});
 			} else {
-				restClient.Post<StatisticResponse>("v1/statistics", jsonPayload, response => { });
-			}*/
-
-			using (var www = new UnityWebRequest(url)) {
-				www.method = update == false ? "POST" : "PUT";
-
-				www.uploadHandler = new UploadHandlerRaw(pData);
-				www.downloadHandler = new DownloadHandlerBuffer();
-				www.SetRequestHeader("Authorization", "Bearer " + restClient.AuthToken.access_token);
-				www.SetRequestHeader("Content-Type", "application/json");
-				yield return www.SendWebRequest();
-
-				var responseBody = www.downloadHandler.text;
-
-				if (www.isNetworkError || www.isHttpError) {
-					Debug.LogWarning("Error submitting statistic: " + www.error);
-					Debug.Log("GlobalstatsIO API Response: " + responseBody);
-					callback?.Invoke(false);
-				} else {
-					statistic = JsonUtility.FromJson<StatisticResponse>(responseBody);
-				}
+				restClient.Post<StatisticResponse>("v1/statistics",
+					jsonPayload,
+					response => {
+						handleShareResponse(response, callback);
+					});
 			}
+		}
+
+		private void handleShareResponse(RestResponse<StatisticResponse> response, Action<bool> callback = null) {
+			if (!response.IsSuccess) {
+				Debug.LogWarning("Error submitting statistic: " + response.ErrorMessage);
+				Debug.Log("GlobalstatsIO API Response: " + response.AdditionalInfo);
+				callback?.Invoke(false);
+				return;
+			}
+			var statistic = response.Data;
 
 			// ID is available only on create, not on update, so do not overwrite it
-			if (statistic?._id != null && statistic._id != "") {
-				StatisticId = statistic._id;
-			}
+			if (!string.IsNullOrEmpty(statistic?._id)) StatisticId = statistic._id;
 
 			UserName = statistic?.name;
 
