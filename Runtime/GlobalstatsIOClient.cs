@@ -1,5 +1,4 @@
 ﻿using CommonUtils;
-using CommonUtils.RestSdk;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,14 +19,13 @@ namespace GlobalstatsIO {
 			if(!ApiConfig.Init()) return;
 			_apiId = ApiConfig.Instance.GlobalstatsId;
 			_apiSecret = ApiConfig.Instance.GlobalstatsSecret;
-			restClient = new RestClient(BASE_URL);
+			restClient = new OAuth2RestClient(BASE_URL);
 		}
 		#endregion
 
-		private readonly IRestClient restClient;
+		private readonly OAuth2RestClient restClient;
 		private readonly string _apiId;
 		private readonly string _apiSecret;
-		private AccessToken _apiAccessToken;
 		private List<StatisticValues> _statisticValues = new List<StatisticValues>();
 
 		public string StatisticId {
@@ -40,20 +38,6 @@ namespace GlobalstatsIO {
 
 		#region Serializable classes
 		[Serializable]
-		private class AccessToken {
-			public string access_token = null;
-			public string token_type = null;
-			public string expires_in = null;
-			public int created_at = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
-			/// <summary>
-			/// Check if still valid, allow a 2 minute grace period
-			/// </summary>
-			public bool IsValid() =>
-				(this.created_at + int.Parse(this.expires_in) - 120) > (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-		}
-
-		[Serializable]
 		private class StatisticResponse {
 			public string name = null;
 			public string _id = null;
@@ -64,7 +48,7 @@ namespace GlobalstatsIO {
 		#endregion
 
 		private void ensureAccessToken(Action onSuccess = null, Action onError = null) {
-			if (_apiAccessToken != null && _apiAccessToken.IsValid()) {
+			if (restClient.HasValidAccessToken) {
 				onSuccess?.Invoke();
 				return;
 			}
@@ -77,7 +61,7 @@ namespace GlobalstatsIO {
 				},
 				response => {
 					if (response.IsSuccess) {
-						_apiAccessToken = response.Data;
+						restClient.SetAccessToken(response.Data);
 						onSuccess?.Invoke();
 					} else {
 						onError?.Invoke();
@@ -105,7 +89,7 @@ namespace GlobalstatsIO {
 					Debug.Log("GlobalstatsIO API Response: " + responseBody);
 					yield break;
 				} else {
-					this._apiAccessToken = JsonUtility.FromJson<AccessToken>(responseBody);
+					restClient.SetAccessToken(JsonUtility.FromJson<AccessToken>(responseBody));
 				}
 			}
 		}
@@ -126,7 +110,7 @@ namespace GlobalstatsIO {
 				id = StatisticId;
 			}
 
-			var url = "https://api.globalstats.io/v1/statistics";
+			var url = $"{BASE_URL}/v1/statistics";
 			var update = false;
 			if (!string.IsNullOrEmpty(id)) {
 				url += $"/{id}";
@@ -160,12 +144,21 @@ namespace GlobalstatsIO {
 			var pData = Encoding.UTF8.GetBytes(jsonPayload);
 			StatisticResponse statistic = null;
 
+			/*if (update) {
+				restClient.Put<StatisticResponse>("v1/statistics", id, jsonPayload,
+					response => {
+
+					});
+			} else {
+				restClient.Post<StatisticResponse>("v1/statistics", jsonPayload, response => { });
+			}*/
+
 			using (var www = new UnityWebRequest(url)) {
 				www.method = update == false ? "POST" : "PUT";
 
 				www.uploadHandler = new UploadHandlerRaw(pData);
 				www.downloadHandler = new DownloadHandlerBuffer();
-				www.SetRequestHeader("Authorization", "Bearer " + this._apiAccessToken.access_token);
+				www.SetRequestHeader("Authorization", "Bearer " + restClient.AuthToken.access_token);
 				www.SetRequestHeader("Content-Type", "application/json");
 				yield return www.SendWebRequest();
 
@@ -219,7 +212,7 @@ namespace GlobalstatsIO {
 		}
 
 		public IEnumerator LinkStatistic(string id = "", Action<bool> callback = null) {
-			if (this._apiAccessToken == null || !this._apiAccessToken.IsValid()) {
+			if (!restClient.HasValidAccessToken) {
 				yield return this.getAccessToken();
 			}
 
@@ -237,7 +230,7 @@ namespace GlobalstatsIO {
 				uploadHandler = new UploadHandlerRaw(pData),
 				downloadHandler = new DownloadHandlerBuffer()
 			}) {
-				www.SetRequestHeader("Authorization", "Bearer " + this._apiAccessToken.access_token);
+				www.SetRequestHeader("Authorization", "Bearer " + restClient.AuthToken.access_token);
 				www.SetRequestHeader("Content-Type", "application/json");
 				yield return www.SendWebRequest();
 
@@ -260,7 +253,7 @@ namespace GlobalstatsIO {
 		public IEnumerator GetLeaderboard(string gtd, int numberOfPlayers, Action<Leaderboard> callback) {
 			numberOfPlayers = Mathf.Clamp(numberOfPlayers, 0, 100); // make sure numberOfPlayers is between 0 and 100
 
-			if (this._apiAccessToken == null || !this._apiAccessToken.IsValid()) {
+			if (!restClient.HasValidAccessToken) {
 				yield return this.getAccessToken();
 			}
 
@@ -274,7 +267,7 @@ namespace GlobalstatsIO {
 				uploadHandler = new UploadHandlerRaw(pData),
 				downloadHandler = new DownloadHandlerBuffer()
 			}) {
-				www.SetRequestHeader("Authorization", "Bearer " + this._apiAccessToken.access_token);
+				www.SetRequestHeader("Authorization", "Bearer " + restClient.AuthToken.access_token);
 				www.SetRequestHeader("Content-Type", "application/json");
 				yield return www.SendWebRequest();
 
