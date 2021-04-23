@@ -1,41 +1,12 @@
-using UnityEngine;
-using UnityEngine.Networking;
-using System;
-using System.Text;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
+using UnityEngine.Networking;
 
-namespace GlobalstatsIO {
-	[Serializable]
-	public class StatisticValues {
-		public string key = null;
-		public string value = "0";
-		public string sorting = null;
-		public string rank = "0";
-		public string value_change = "0";
-		public string rank_change = "0";
-	}
-
-	[Serializable]
-	public class LinkData {
-		public string url = null;
-		public string pin = null;
-	}
-
-	[Serializable]
-	public class LeaderboardValue {
-		public string name = null;
-		public string user_profile = null;
-		public string user_icon = null;
-		public string rank = "0";
-		public string value = "0";
-	}
-
-	[Serializable]
-	public class Leaderboard {
-		public LeaderboardValue[] data;
-	}
-
+namespace GlobalstatsIO
+{
 	public class GlobalstatsIOClient {
 		private readonly string _apiId;
 		private readonly string _apiSecret;
