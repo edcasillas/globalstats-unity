@@ -22,6 +22,7 @@ namespace GlobalstatsIO
 		[HideInInspector]
 		public LinkData LinkData = null;
 
+		#region Serializable classes
 		[Serializable]
 		private class AccessToken {
 			public string access_token = null;
@@ -42,6 +43,7 @@ namespace GlobalstatsIO
 			[SerializeField]
 			public List<StatisticValues> values = null;
 		}
+		#endregion
 
 		public GlobalstatsIOClient(string apiKey, string apiSecret) {
 			this._apiId = apiKey;
