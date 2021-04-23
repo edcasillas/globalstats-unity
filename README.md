@@ -56,7 +56,7 @@ This allows you to send updated to the score by simply doing the same call again
 
 You can check if there is a ID stored via this variable
 ```
-if (gs.statistic_id != "") {
+if (gs.StatisticId != "") {
     // A statistic was already shared, new calls to share() will do an update
 }
 ```

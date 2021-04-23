@@ -13,14 +13,9 @@ namespace GlobalstatsIO
 		private AccessToken _apiAccessToken;
 		private List<StatisticValues> _statisticValues = new List<StatisticValues>();
 
-		[HideInInspector]
-		public string StatisticId = "";
-
-		[HideInInspector]
-		public string UserName = "";
-
-		[HideInInspector]
-		public LinkData LinkData = null;
+		public string StatisticId { get; set; } = "";
+		public string UserName { get; set; } = "";
+		public LinkData LinkData { get; set; } = null;
 
 		#region Serializable classes
 		[Serializable]
@@ -50,7 +45,7 @@ namespace GlobalstatsIO
 			this._apiSecret = apiSecret;
 		}
 
-		private IEnumerator GetAccessToken() {
+		private IEnumerator getAccessToken() {
 			string url = "https://api.globalstats.io/oauth/access_token";
 
 			WWWForm form = new WWWForm();
@@ -80,20 +75,20 @@ namespace GlobalstatsIO
 			var update = false;
 
 			if (_apiAccessToken == null || !_apiAccessToken.IsValid()) {
-				yield return GetAccessToken();
+				yield return getAccessToken();
 			}
 
 			// If no id is supplied but we have one stored, reuse it.
-			if (id == "" && StatisticId != "") {
+			if (string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(StatisticId)) {
 				id = StatisticId;
 			}
 
 			var url = "https://api.globalstats.io/v1/statistics";
-			if (id != "") {
-				url = "https://api.globalstats.io/v1/statistics/" + id;
+			if (!string.IsNullOrEmpty(id)) {
+				url += $"/{id}";
 				update = true;
 			} else {
-				if (name == "") {
+				if (string.IsNullOrWhiteSpace(name)) {
 					name = "anonymous";
 				}
 			}
@@ -181,7 +176,7 @@ namespace GlobalstatsIO
 
 		public IEnumerator LinkStatistic(string id = "", Action<bool> callback = null) {
 			if (this._apiAccessToken == null || !this._apiAccessToken.IsValid()) {
-				yield return this.GetAccessToken();
+				yield return this.getAccessToken();
 			}
 
 			// If no id is supplied but we have one stored, reuse it.
@@ -222,7 +217,7 @@ namespace GlobalstatsIO
 			numberOfPlayers = Mathf.Clamp(numberOfPlayers, 0, 100); // make sure numberOfPlayers is between 0 and 100
 
 			if (this._apiAccessToken == null || !this._apiAccessToken.IsValid()) {
-				yield return this.GetAccessToken();
+				yield return this.getAccessToken();
 			}
 
 			string url = "https://api.globalstats.io/v1/gtdleaderboard/" + gtd;
