@@ -14,15 +14,20 @@ namespace GlobalstatsIO {
 		private static ApiConfig instance;
 		public static ApiConfig Instance {
 			get {
-				if (!instance) init();
+				if (!instance) Init();
 				return instance;
 			}
 			private set => instance = value;
 		}
-		private ApiConfig(){}
+
+		private ApiConfig() { }
 		#endregion
 
-		private static bool init() {
+		private static bool isInitialized;
+
+		public static bool Init() {
+			if (isInitialized) return true;
+
 			Debug.Log($"Loading GlobalstatsIO API configuration from {FullRelativeName}");
 			var cfg = Resources.Load<ApiConfig>(FullRelativeName);
 			if (!cfg) {
@@ -31,6 +36,7 @@ namespace GlobalstatsIO {
 			}
 
 			Instance = cfg;
+			isInitialized = true;
 			return true;
 		}
 

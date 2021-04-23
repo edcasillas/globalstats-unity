@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommonUtils;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -7,11 +8,16 @@ using UnityEngine.Networking;
 
 namespace GlobalstatsIO {
 	public class GlobalstatsIOClient {
-		/*#region Singleton
+		#region Singleton
 		private static GlobalstatsIOClient instance;
 		public static GlobalstatsIOClient Instance { get; private set; }
-		private GlobalstatsIOClient() { }
-		#endregion*/
+
+		private GlobalstatsIOClient() {
+			if(!ApiConfig.Init()) return;
+			_apiId = ApiConfig.Instance.GlobalstatsId;
+			_apiSecret = ApiConfig.Instance.GlobalstatsSecret;
+		}
+		#endregion
 
 		private readonly string _apiId;
 		private readonly string _apiSecret;
@@ -45,11 +51,6 @@ namespace GlobalstatsIO {
 		}
 		#endregion
 
-		public GlobalstatsIOClient(string apiKey, string apiSecret) {
-			this._apiId = apiKey;
-			this._apiSecret = apiSecret;
-		}
-
 		private IEnumerator getAccessToken() {
 			string url = "https://api.globalstats.io/oauth/access_token";
 
@@ -75,7 +76,18 @@ namespace GlobalstatsIO {
 			}
 		}
 
-		public IEnumerator Share(Dictionary<string, string> values, string id = "", string name = "",
+		/// <summary>
+		/// Asynchronously submits the specified <paramref name="values"/>.
+		/// </summary>
+		/// <param name="values"></param>
+		/// <param name="id"></param>
+		/// <param name="name"></param>
+		/// <param name="callback"></param>
+		public void Share(Dictionary<string, string> values, string id = "", string name = "",
+			Action<bool> callback = null)
+			=> Coroutiner.StartCoroutine(share(values, id, name, callback));
+
+		private IEnumerator share(Dictionary<string, string> values, string id = "", string name = "",
 			Action<bool> callback = null) {
 			var update = false;
 
