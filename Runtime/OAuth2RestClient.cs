@@ -24,6 +24,5 @@ namespace GlobalstatsIO {
 		}
 
 		public void SetAccessToken(AccessToken token) => authToken = token;
-		public void ClearAccessToken() => authToken = null;
 	}
 }

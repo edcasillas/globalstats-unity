@@ -1,4 +1,4 @@
-﻿using CommonUtils;
+﻿using CommonUtils.Extensions;
 using CommonUtils.RestSdk;
 using System;
 using System.Collections;
@@ -45,6 +45,11 @@ namespace GlobalstatsIO {
 
 			[SerializeField]
 			public List<StatisticValues> values = null;
+
+			public UserStatistics ToUserStatistics() {
+				var result = new UserStatistics {name = name, statistics = values};
+				return result;
+			}
 		}
 		#endregion
 
@@ -95,6 +100,7 @@ namespace GlobalstatsIO {
 			}
 		}
 
+		#region Share
 		/// <summary>
 		/// Asynchronously submits the specified <paramref name="values"/>.
 		/// </summary>
@@ -188,16 +194,27 @@ namespace GlobalstatsIO {
 
 			callback?.Invoke(true);
 		}
+		#endregion
 
-		public StatisticValues GetStatistic(string key) {
-			for (int i = 0; i < this._statisticValues.Count; i++) {
-				if (this._statisticValues[i].key == key) {
-					return this._statisticValues[i];
-				}
+		#region GetStatistics
+		public void GetStatistics(Action<UserStatistics> onResponse) {
+			if (StatisticId.IsNullOrEmpty()) {
+				onResponse(null);
+				return;
 			}
 
-			return null;
+			ensureAccessToken(() => {
+					restClient.Get<UserStatistics>("v1/statistics",
+						StatisticId,
+						response => {
+							onResponse(response.IsSuccess ? response.Data : null);
+						});
+				},
+				() => {
+					onResponse(null);
+				});
 		}
+		#endregion
 
 		public IEnumerator LinkStatistic(string id = "", Action<bool> callback = null) {
 			if (!restClient.HasValidAccessToken) {
