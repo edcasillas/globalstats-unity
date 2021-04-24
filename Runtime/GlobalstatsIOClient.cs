@@ -14,7 +14,8 @@ namespace GlobalstatsIO {
 
 		#region Singleton
 		private static GlobalstatsIOClient instance;
-		public static GlobalstatsIOClient Instance { get; private set; }
+
+		public static GlobalstatsIOClient Instance => instance ??= new GlobalstatsIOClient();
 
 		private GlobalstatsIOClient() {
 			if(!ApiConfig.Init()) return;
@@ -108,10 +109,10 @@ namespace GlobalstatsIO {
 		/// <param name="id"></param>
 		/// <param name="name"></param>
 		/// <param name="callback"></param>
-		public void Share(Dictionary<string, string> values, string id = "", string name = "",
-			Action<bool> callback = null) => ensureAccessToken(() => share(values, id, name, callback));
+		public void Share(Dictionary<string, object> values, string id = "", string name = "",
+			Action<UserStatistics> callback = null) => ensureAccessToken(() => share(values, id, name, callback));
 
-		private void share(Dictionary<string, string> values, string id = "", string name = "", Action<bool> callback = null) {
+		private void share(Dictionary<string, object> values, string id = "", string name = "", Action<UserStatistics> callback = null) {
 			// If no id is supplied but we have one stored, reuse it.
 			if (string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(StatisticId)) {
 				id = StatisticId;
@@ -122,7 +123,7 @@ namespace GlobalstatsIO {
 				update = true;
 			} else {
 				if (string.IsNullOrWhiteSpace(name)) {
-					name = "anonymous";
+					name = "Anonymous";
 				}
 			}
 
@@ -160,11 +161,11 @@ namespace GlobalstatsIO {
 			}
 		}
 
-		private void handleShareResponse(RestResponse<StatisticResponse> response, Action<bool> callback = null) {
+		private void handleShareResponse(RestResponse<StatisticResponse> response, Action<UserStatistics> callback = null) {
 			if (!response.IsSuccess) {
 				Debug.LogWarning("Error submitting statistic: " + response.ErrorMessage);
 				Debug.Log("GlobalstatsIO API Response: " + response.AdditionalInfo);
-				callback?.Invoke(false);
+				callback?.Invoke(null);
 				return;
 			}
 			var statistic = response.Data;
@@ -192,7 +193,7 @@ namespace GlobalstatsIO {
 				}
 			}
 
-			callback?.Invoke(true);
+			callback?.Invoke(response.Data.ToUserStatistics());
 		}
 		#endregion
 
