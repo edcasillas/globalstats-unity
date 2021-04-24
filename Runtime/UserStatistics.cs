@@ -9,5 +9,9 @@ namespace GlobalstatsIO {
 
 		[SerializeField]
 		public List<StatisticValues> statistics = null;
+
+		private Dictionary<string, StatisticValues> statisticsMap;
+
+		public Dictionary<string, StatisticValues> StatisticsMap => statisticsMap ??= statistics.ToDictionary();
 	}
 }
