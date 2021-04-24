@@ -110,7 +110,7 @@ namespace GlobalstatsIO {
 		/// <param name="name"></param>
 		/// <param name="callback"></param>
 		public void Share(Dictionary<string, object> values, string id = "", string name = "",
-			Action<UserStatistics> callback = null) => ensureAccessToken(() => share(values, id, name, callback));
+			Action<UserStatistics> callback = null) => ensureAccessToken(() => share(values, id, name, callback), () => callback?.Invoke(null));
 
 		private void share(Dictionary<string, object> values, string id = "", string name = "", Action<UserStatistics> callback = null) {
 			// If no id is supplied but we have one stored, reuse it.
