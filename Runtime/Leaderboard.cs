@@ -1,7 +1,6 @@
 ﻿using System;
 
-namespace GlobalstatsIO
-{
+namespace GlobalstatsIO {
 	[Serializable]
 	public class Leaderboard {
 		public LeaderboardValue[] data;

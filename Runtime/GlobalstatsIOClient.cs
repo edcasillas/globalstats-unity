@@ -202,7 +202,6 @@ namespace GlobalstatsIO {
 		}
 		#endregion
 
-		#region GetStatistics
 		public void GetStatistics(Action<UserStatistics> onResponse) {
 			if (StatisticId.IsNullOrEmpty()) {
 				onResponse(null);
@@ -220,7 +219,6 @@ namespace GlobalstatsIO {
 					onResponse(null);
 				});
 		}
-		#endregion
 
 		public IEnumerator LinkStatistic(string id = "", Action<bool> callback = null) {
 			if (!restClient.HasValidAccessToken) {
@@ -261,6 +259,28 @@ namespace GlobalstatsIO {
 			callback?.Invoke(true);
 		}
 
+		public void GetStatisticsSection(string gtd, Action<StatisticSection> onResponse) {
+			if (string.IsNullOrWhiteSpace(gtd)) throw new ArgumentNullException(gtd);
+			if (string.IsNullOrWhiteSpace(StatisticId)) {
+				Debug.LogError("Globalstats.io: Could not get statistics section because no Id has been registered for this player.");
+				// TODO Redirect to GetLeaderboard
+				onResponse(null);
+				return;
+			}
+
+			ensureAccessToken(() => {
+				restClient.Get<StatisticSection>($"{StatisticId}/section/{gtd}",
+					response => {
+						if (!response.IsSuccess) {
+							Debug.LogError("Globalstats.io: An error occurred while fetching statistics section.");
+							return;
+						}
+
+						onResponse(response.Data);
+					});
+			});
+		}
+
 		public IEnumerator GetLeaderboard(string gtd, int numberOfPlayers, Action<Leaderboard> callback) {
 			numberOfPlayers = Mathf.Clamp(numberOfPlayers, 0, 100); // make sure numberOfPlayers is between 0 and 100
 
@@ -292,8 +312,6 @@ namespace GlobalstatsIO {
 
 				leaderboard = JsonUtility.FromJson<Leaderboard>(responseBody);
 			}
-
-			;
 
 			callback?.Invoke(leaderboard);
 		}
