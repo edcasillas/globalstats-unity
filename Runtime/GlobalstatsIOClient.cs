@@ -121,6 +121,7 @@ namespace GlobalstatsIO {
 			Action<UserStatistics> callback = null) => ensureAccessToken(() => share(values, id, name, callback), () => callback?.Invoke(null));
 
 		private void share(Dictionary<string, object> values, string id = "", string name = "", Action<UserStatistics> callback = null) {
+			this.DebugLogNoContext($"Globalstats.io: Submitting values with ID = {StatisticId ?? "<null>"}");
 			// If no id is supplied but we have one stored, reuse it.
 			if (string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(StatisticId)) {
 				id = StatisticId;
@@ -138,29 +139,22 @@ namespace GlobalstatsIO {
 			string jsonPayload;
 
 			if (update == false) {
-				jsonPayload = "{\"name\":\"" + name + "\", \"values\":{";
+				jsonPayload = "{\"name\":\"" + name + "\", \"values\":";
 			} else {
-				jsonPayload = "{\"values\":{";
+				jsonPayload = "{\"values\":";
 			}
 
-			var semicolon = false;
-			foreach (var value in values) {
-				if (semicolon) {
-					jsonPayload += ",";
-				}
-
-				jsonPayload += "\"" + value.Key + "\":\"" + value.Value + "\"";
-				semicolon = true;
-			}
-
-			jsonPayload += "}}";
+			jsonPayload += values.AsJsonString();
+			jsonPayload += "}";
 
 			if (update) {
+				this.DebugLogNoContext($"Globalstats.io: Updating values: {jsonPayload}");
 				restClient.Put<StatisticResponse>("v1/statistics", id, jsonPayload,
 					response => {
 						handleShareResponse(response, callback);
 					});
 			} else {
+				this.DebugLogNoContext($"Globalstats.io: Posting values for the first time: {jsonPayload}");
 				restClient.Post<StatisticResponse>("v1/statistics",
 					jsonPayload,
 					response => {
