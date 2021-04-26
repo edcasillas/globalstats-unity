@@ -134,14 +134,9 @@ namespace GlobalstatsIO {
 				id = StatisticId;
 			}
 
-			var update = false;
-			if (!string.IsNullOrEmpty(id)) {
-				update = true;
-			} else {
-				if (string.IsNullOrWhiteSpace(name)) {
-					name = "Anonymous";
-				}
-			}
+			name ??= UserName ?? "";
+
+			var update = !string.IsNullOrEmpty(id);
 
 			string jsonPayload;
 
