@@ -12,6 +12,7 @@ namespace GlobalstatsIO {
 	public class GlobalstatsIOClient : IVerbosable {
 		private const string STATISTIC_ID_PREF_KEY = "globalstats.io.statistic-id";
 		private const string BASE_URL = "https://api.globalstats.io";
+		public const int USERNAME_MIN_LENGTH = 3;
 
 		#region Singleton
 		private static GlobalstatsIOClient instance;
@@ -118,7 +119,13 @@ namespace GlobalstatsIO {
 		/// <param name="name"></param>
 		/// <param name="callback"></param>
 		public void Share(Dictionary<string, object> values, string id = "", string name = "",
-			Action<UserStatistics> callback = null) => ensureAccessToken(() => share(values, id, name, callback), () => callback?.Invoke(null));
+			Action<UserStatistics> callback = null) {
+			if (!string.IsNullOrEmpty(name) && name.Length < USERNAME_MIN_LENGTH) {
+				throw new ArgumentException("The name must be at least 3 characters.");
+			}
+
+			ensureAccessToken(() => share(values, id, name, callback), () => callback?.Invoke(null));
+		}
 
 		private void share(Dictionary<string, object> values, string id = "", string name = "", Action<UserStatistics> callback = null) {
 			this.DebugLogNoContext($"Globalstats.io: Submitting values with ID = {StatisticId ?? "<null>"}");
