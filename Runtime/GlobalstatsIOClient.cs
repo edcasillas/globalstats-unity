@@ -138,7 +138,7 @@ namespace GlobalstatsIO {
 
 			string jsonPayload;
 
-			if (update == false) {
+			if (!update || name != UserName) {
 				jsonPayload = "{\"name\":\"" + name + "\", \"values\":";
 			} else {
 				jsonPayload = "{\"values\":";
@@ -166,11 +166,12 @@ namespace GlobalstatsIO {
 		private void handleShareResponse(RestResponse<StatisticResponse> response, Action<UserStatistics> callback = null) {
 			if (!response.IsSuccess) {
 				Debug.LogWarning("Error submitting statistic: " + response.ErrorMessage);
-				Debug.Log("GlobalstatsIO API Response: " + response.AdditionalInfo);
+				this.DebugLogNoContext("GlobalstatsIO API Response: " + response.AdditionalInfo);
 				callback?.Invoke(null);
 				return;
 			}
 			var statistic = response.Data;
+			this.DebugLogNoContext($"GlobalstatsIO API Response: {JsonUtility.ToJson(statistic)}");
 
 			// ID is available only on create, not on update, so do not overwrite it
 			if (!string.IsNullOrEmpty(statistic?._id)) StatisticId = statistic._id;
