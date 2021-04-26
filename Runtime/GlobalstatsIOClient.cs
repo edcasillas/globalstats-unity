@@ -1,4 +1,5 @@
-﻿using CommonUtils.Extensions;
+﻿using CommonUtils;
+using CommonUtils.Extensions;
 using CommonUtils.RestSdk;
 using System;
 using System.Collections;
@@ -8,7 +9,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 namespace GlobalstatsIO {
-	public class GlobalstatsIOClient {
+	public class GlobalstatsIOClient : IVerbosable {
 		private const string STATISTIC_ID_PREF_KEY = "globalstats.io.statistic-id";
 		private const string BASE_URL = "https://api.globalstats.io";
 
@@ -38,6 +39,8 @@ namespace GlobalstatsIO {
 		public string UserName { get; set; } = "";
 		public LinkData LinkData { get; set; } = null;
 
+		public bool IsVerbose => ApiConfig.Instance.IsVerbose;
+
 		#region Serializable classes
 		[Serializable]
 		private class StatisticResponse {
@@ -56,9 +59,11 @@ namespace GlobalstatsIO {
 
 		private void ensureAccessToken(Action onSuccess = null, Action onError = null) {
 			if (restClient.HasValidAccessToken) {
+				this.DebugLogNoContext("Globalstats.io: Valid access token found.");
 				onSuccess?.Invoke();
 				return;
 			}
+			this.DebugLogNoContext("Globalstats.io: Fetching access token from globalstats.io");
 			restClient.Post<AccessToken>("oauth/access_token",
 				new Dictionary<string, object>() {
 					{"grant_type", "client_credentials"},
@@ -68,14 +73,17 @@ namespace GlobalstatsIO {
 				},
 				response => {
 					if (response.IsSuccess) {
+						this.DebugLogNoContext("Globalstats.io: Access token successfully retrieved.");
 						restClient.SetAccessToken(response.Data);
 						onSuccess?.Invoke();
 					} else {
+						Debug.LogError("Globalstats.io: Access token could not be retrieved.");
 						onError?.Invoke();
 					}
 				});
 		}
 
+		[Obsolete]
 		private IEnumerator getAccessToken() {
 			string url = "https://api.globalstats.io/oauth/access_token";
 

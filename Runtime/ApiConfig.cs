@@ -44,12 +44,12 @@ namespace GlobalstatsIO {
 #pragma warning disable 649
 		[SerializeField] private string globalstatsId;
 		[SerializeField] private string globalstatsSecret;
-		[SerializeField] private string globalstatsDebugUsername;
+		[SerializeField] private bool verbose;
 #pragma warning restore 649
 		#endregion
 
 		public string GlobalstatsId => globalstatsId;
 		public string GlobalstatsSecret => globalstatsSecret;
-		public string GlobalstatsDebugUsername => globalstatsDebugUsername;
+		public bool IsVerbose => verbose;
 	}
 }
