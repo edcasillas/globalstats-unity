@@ -269,7 +269,7 @@ namespace GlobalstatsIO {
 			}
 
 			ensureAccessToken(() => {
-				restClient.Get<StatisticSection>($"{StatisticId}/section/{gtd}",
+				restClient.Get<StatisticSection>($"v1/statistics/{StatisticId}/section/{gtd}",
 					response => {
 						if (!response.IsSuccess) {
 							Debug.LogError("Globalstats.io: An error occurred while fetching statistics section.");
