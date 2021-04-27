@@ -84,32 +84,6 @@ namespace GlobalstatsIO {
 				});
 		}
 
-		[Obsolete]
-		private IEnumerator getAccessToken() {
-			string url = "https://api.globalstats.io/oauth/access_token";
-
-			WWWForm form = new WWWForm();
-			form.AddField("grant_type", "client_credentials");
-			form.AddField("scope", "endpoint_client");
-			form.AddField("client_id", this._apiId);
-			form.AddField("client_secret", this._apiSecret);
-
-			using (UnityWebRequest www = UnityWebRequest.Post(url, form)) {
-				www.downloadHandler = new DownloadHandlerBuffer();
-				yield return www.SendWebRequest();
-
-				string responseBody = www.downloadHandler.text;
-
-				if (www.isNetworkError || www.isHttpError) {
-					Debug.LogWarning("Error retrieving access token: " + www.error);
-					Debug.Log("GlobalstatsIO API Response: " + responseBody);
-					yield break;
-				} else {
-					restClient.SetAccessToken(JsonUtility.FromJson<AccessToken>(responseBody));
-				}
-			}
-		}
-
 		#region Share
 		/// <summary>
 		/// Asynchronously submits the specified <paramref name="values"/>.
@@ -220,11 +194,11 @@ namespace GlobalstatsIO {
 				});
 		}
 
-		public IEnumerator LinkStatistic(string id = "", Action<bool> callback = null) {
-			if (!restClient.HasValidAccessToken) {
-				yield return this.getAccessToken();
-			}
+		public void LinkStatistic(string id = "", Action<bool> callback = null) {
+			ensureAccessToken(() => { Coroutiner.StartCoroutine(linkStatistic(id, callback)); });
+		}
 
+		private IEnumerator linkStatistic(string id = "", Action<bool> callback = null) {
 			// If no id is supplied but we have one stored, reuse it.
 			if (id == "" && this.StatisticId != "") {
 				id = this.StatisticId;
@@ -281,12 +255,12 @@ namespace GlobalstatsIO {
 			});
 		}
 
-		public IEnumerator GetLeaderboard(string gtd, int numberOfPlayers, Action<Leaderboard> callback) {
-			numberOfPlayers = Mathf.Clamp(numberOfPlayers, 0, 100); // make sure numberOfPlayers is between 0 and 100
+		public void GetLeaderboard(string gtd, int numberOfPlayers, Action<Leaderboard> callback) {
+			ensureAccessToken(() => Coroutiner.StartCoroutine(getLeaderboard(gtd, numberOfPlayers, callback)));
+		}
 
-			if (!restClient.HasValidAccessToken) {
-				yield return this.getAccessToken();
-			}
+		private IEnumerator getLeaderboard(string gtd, int numberOfPlayers, Action<Leaderboard> callback) {
+			numberOfPlayers = Mathf.Clamp(numberOfPlayers, 0, 100); // make sure numberOfPlayers is between 0 and 100
 
 			string url = "https://api.globalstats.io/v1/gtdleaderboard/" + gtd;
 
