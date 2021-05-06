@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 namespace GlobalstatsIO {
@@ -44,12 +45,14 @@ namespace GlobalstatsIO {
 #pragma warning disable 649
 		[SerializeField] private string globalstatsId;
 		[SerializeField] private string globalstatsSecret;
+		[SerializeField] private string defaultUsername = "Unknown";
 		[SerializeField] private bool verbose;
 #pragma warning restore 649
 		#endregion
 
 		public string GlobalstatsId => globalstatsId;
 		public string GlobalstatsSecret => globalstatsSecret;
+		public string DefaultUsername => defaultUsername;
 		public bool IsVerbose => verbose;
 	}
 }

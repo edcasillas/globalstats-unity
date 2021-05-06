@@ -108,20 +108,21 @@ namespace GlobalstatsIO {
 				id = StatisticId;
 			}
 
-			name ??= UserName ?? "";
-
 			var update = !string.IsNullOrEmpty(id);
 
-			string jsonPayload;
+			name ??= UserName ?? "";
+			if (!update && string.IsNullOrWhiteSpace(name)) name = ApiConfig.Instance.DefaultUsername;
+
+			var payloadBuilder = new StringBuilder();
 
 			if (!update || name != UserName) {
-				jsonPayload = "{\"name\":\"" + name + "\", \"values\":";
+				payloadBuilder.Append("{\"name\":\"" + name + "\", \"values\":");
 			} else {
-				jsonPayload = "{\"values\":";
+				payloadBuilder.Append("{\"values\":");
 			}
 
-			jsonPayload += values.AsJsonString();
-			jsonPayload += "}";
+			payloadBuilder.Append(values.AsJsonString()).Append("}");
+			var jsonPayload = payloadBuilder.ToString();
 
 			if (update) {
 				this.DebugLogNoContext($"Globalstats.io: Updating values: {jsonPayload}");
