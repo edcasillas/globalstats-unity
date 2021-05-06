@@ -195,42 +195,21 @@ namespace GlobalstatsIO {
 		}
 
 		public void LinkStatistic(string id = "", Action<bool> callback = null) {
-			ensureAccessToken(() => { Coroutiner.StartCoroutine(linkStatistic(id, callback)); });
-		}
-
-		private IEnumerator linkStatistic(string id = "", Action<bool> callback = null) {
-			// If no id is supplied but we have one stored, reuse it.
-			if (id == "" && this.StatisticId != "") {
-				id = this.StatisticId;
-			}
-
-			string url = "https://api.globalstats.io/v1/statisticlinks/" + id + "/request";
-
-			string jsonPayload = "{}";
-			byte[] pData = Encoding.UTF8.GetBytes(jsonPayload);
-
-			using (UnityWebRequest www = new UnityWebRequest(url, "POST") {
-				uploadHandler = new UploadHandlerRaw(pData),
-				downloadHandler = new DownloadHandlerBuffer()
-			}) {
-				www.SetRequestHeader("Authorization", "Bearer " + restClient.AuthToken.access_token);
-				www.SetRequestHeader("Content-Type", "application/json");
-				yield return www.SendWebRequest();
-
-				string responseBody = www.downloadHandler.text;
-
-				if (www.isNetworkError || www.isHttpError) {
-					Debug.LogWarning("Error linking statistic: " + www.error);
-					Debug.Log("GlobalstatsIO API Response: " + responseBody);
-					callback?.Invoke(false);
+			ensureAccessToken(() => {
+				// If no id is supplied but we have one stored, reuse it.
+				if (id == "" && this.StatisticId != "") {
+					id = this.StatisticId;
 				}
 
-				this.LinkData = JsonUtility.FromJson<LinkData>(responseBody);
-			}
+				restClient.Post<LinkData>($"v1/statisticlinks/{id}/request", "{}",
+					response => {
+						if (response.IsSuccess) {
+							LinkData = response.Data;
+						}
 
-			;
-
-			callback?.Invoke(true);
+						callback(response.IsSuccess);
+					});
+			});
 		}
 
 		public void GetStatisticsSection(string gtd, Action<StatisticSection> onResponse) {
@@ -256,38 +235,14 @@ namespace GlobalstatsIO {
 		}
 
 		public void GetLeaderboard(string gtd, int numberOfPlayers, Action<Leaderboard> callback) {
-			ensureAccessToken(() => Coroutiner.StartCoroutine(getLeaderboard(gtd, numberOfPlayers, callback)));
-		}
-
-		private IEnumerator getLeaderboard(string gtd, int numberOfPlayers, Action<Leaderboard> callback) {
-			numberOfPlayers = Mathf.Clamp(numberOfPlayers, 0, 100); // make sure numberOfPlayers is between 0 and 100
-
-			string url = "https://api.globalstats.io/v1/gtdleaderboard/" + gtd;
-
-			string json_payload = "{\"limit\":" + numberOfPlayers + "\n}";
-			Leaderboard leaderboard;
-			byte[] pData = Encoding.UTF8.GetBytes(json_payload);
-
-			using (UnityWebRequest www = new UnityWebRequest(url, "POST") {
-				uploadHandler = new UploadHandlerRaw(pData),
-				downloadHandler = new DownloadHandlerBuffer()
-			}) {
-				www.SetRequestHeader("Authorization", "Bearer " + restClient.AuthToken.access_token);
-				www.SetRequestHeader("Content-Type", "application/json");
-				yield return www.SendWebRequest();
-
-				string responseBody = www.downloadHandler.text;
-
-				if (www.isNetworkError || www.isHttpError) {
-					Debug.LogWarning("Error getting leaderboard: " + www.error);
-					Debug.Log("GlobalstatsIO API Response: " + responseBody);
-					callback?.Invoke(null);
-				}
-
-				leaderboard = JsonUtility.FromJson<Leaderboard>(responseBody);
-			}
-
-			callback?.Invoke(leaderboard);
+			ensureAccessToken(() => {
+				numberOfPlayers = Mathf.Clamp(numberOfPlayers, 0, 100); // make sure numberOfPlayers is between 0 and 100
+				string json_payload = "{\"limit\":" + numberOfPlayers + "\n}";
+				restClient.Post<Leaderboard>($"v1/gtdleaderboard/{gtd}", json_payload,
+					response => {
+						callback?.Invoke(response.IsSuccess ? response.Data : null);
+					});
+			});
 		}
 	}
 }
