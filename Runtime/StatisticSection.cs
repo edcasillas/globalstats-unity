@@ -1,13 +1,25 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace GlobalstatsIO {
 	[Serializable]
 	public class StatisticSection : IEnumerable<LeaderboardValue> {
-		public RanksData better_ranks;
-		public LeaderboardValue user_rank;
-		public RanksData worse_ranks;
+		[SerializeField] private RanksData better_ranks;
+		[SerializeField] private LeaderboardValue user_rank;
+		[SerializeField] private RanksData worse_ranks;
+
+		public RanksData BetterRanks => better_ranks;
+
+		public LeaderboardValue UserRank {
+			get {
+				user_rank.IsSelf = true;
+				return user_rank;
+			}
+		}
+
+		public RanksData WorseRanks => worse_ranks;
 
 		public IEnumerator<LeaderboardValue> GetEnumerator() {
 			if (better_ranks?.data != null) {
@@ -16,7 +28,9 @@ namespace GlobalstatsIO {
 				}
 			}
 
-			if (user_rank != null) yield return user_rank;
+			if (user_rank != null) {
+				yield return UserRank;
+			}
 
 			if (worse_ranks?.data != null) {
 				foreach (var entry in worse_ranks.data) {
