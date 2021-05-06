@@ -215,6 +215,9 @@ namespace GlobalstatsIO {
 
 		public void GetStatisticsSection(string gtd, Action<StatisticSection> onResponse) {
 			if (string.IsNullOrWhiteSpace(gtd)) throw new ArgumentNullException(gtd);
+			if (onResponse == null) {
+				throw new ArgumentNullException(nameof(onResponse));
+			}
 			if (string.IsNullOrWhiteSpace(StatisticId)) {
 				Debug.LogError("Globalstats.io: Could not get statistics section because no Id has been registered for this player.");
 				// TODO Redirect to GetLeaderboard
@@ -232,7 +235,7 @@ namespace GlobalstatsIO {
 
 						onResponse(response.Data);
 					});
-			});
+			}, () => onResponse(null));
 		}
 
 		public void GetLeaderboard(string gtd, int numberOfPlayers, Action<Leaderboard> callback) {
