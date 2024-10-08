@@ -1,12 +1,10 @@
-﻿using CommonUtils;
-using CommonUtils.Extensions;
+﻿using CommonUtils.Extensions;
 using CommonUtils.RestSdk;
+using CommonUtils.Verbosables;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace GlobalstatsIO {
 	public class GlobalstatsIOClient : IVerbosable {
@@ -40,7 +38,7 @@ namespace GlobalstatsIO {
 		public string UserName { get; set; } = "";
 		public LinkData LinkData { get; set; } = null;
 
-		public bool IsVerbose => ApiConfig.Instance.IsVerbose;
+		public Verbosity Verbosity => Verbosity.Debug | Verbosity.Warning | Verbosity.Error;
 
 		#region Serializable classes
 		[Serializable]
